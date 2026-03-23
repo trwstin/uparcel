@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>uParcel Price Calculator</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #f0f5fa;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --primary: #0f172a;
+            --primary-hover: #334155;
+            --btn-bg: #e2e8f0;
+            --btn-hover: #cbd5e1;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8; 
+            --warning-bg: #fffbeb;
+            --warning-border: #f59e0b;
+            --warning-text: #b45309;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h2 { margin-top: 0; text-align: center; color: var(--primary); font-size: 24px;}
+        p.subtitle { text-align: center; color: var(--text-muted); margin-bottom: 25px; font-size: 15px;}
+
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            background: var(--btn-bg);
+            padding: 6px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover { color: var(--primary); }
+        .tab-btn.active {
+            background: white;
+            color: var(--accent);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .product-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .product-title {
+            font-weight: 600;
+            font-size: 17px;
+            margin: 0;
+            color: var(--primary);
+        }
+
+        .row { display: flex; justify-content: space-between; align-items: center; }
+        .label-group { display: flex; flex-direction: column; }
+        .label-main { font-weight: 500; font-size: 15px; }
+
+        .stepper { display: flex; align-items: center; gap: 8px; }
+        .stepper button {
+            width: 32px; height: 32px;
+            border-radius: 50%; border: none;
+            background-color: var(--btn-bg); color: var(--text-main);
+            font-size: 18px; line-height: 1;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+        }
+        .stepper button:hover { background-color: var(--btn-hover); }
+        
+        /* Updated Input Styling for direct text entry */
+        .stepper input {
+            width: 40px; 
+            text-align: center; 
+            border: 1px solid transparent;
+            background: transparent; 
+            font-size: 16px; 
+            font-weight: 600;
+            color: var(--text-main); 
+            border-radius: 6px;
+            padding: 4px 0;
+            transition: all 0.2s;
+        }
+        .stepper input:focus {
+            background: white;
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+        /* Hide default number spinners */
+        .stepper input::-webkit-outer-spin-button,
+        .stepper input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .stepper input[type="number"] {
+            appearance: textfield;
+        }
+
+        /* Action Buttons Row */
+        .action-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .reset-btn {
+            flex: 1;
+            padding: 16px;
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 2px solid var(--btn-hover);
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .reset-btn:hover {
+            background-color: var(--btn-hover);
+            color: var(--text-main);
+        }
+
+        .calc-btn {
+            flex: 2.5;
+            padding: 16px;
+            background-color: var(--accent);
+            color: white;
+            border: none; border-radius: 10px;
+            font-size: 16px; font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .calc-btn:hover { background-color: var(--accent-hover); } 
+
+        #result {
+            margin-top: 25px; padding: 20px;
+            background: #ffffff; border: 1px solid #e2e8f0;
+            border-radius: 12px; font-size: 14px; display: none;
+        }
+
+        .parcel-box {
+            background: var(--bg-color); padding: 15px;
+            border-radius: 8px; margin-bottom: 12px;
+            border-left: 4px solid var(--accent);
+        }
+        .parcel-header { font-weight: bold; font-size: 16px; margin-bottom: 5px;}
+        .parcel-specs { color: var(--text-muted); font-size: 13px; margin-bottom: 8px;}
+        .parcel-items { margin: 0; padding-left: 20px; font-size: 14px;}
+        
+        .warning-box {
+            margin-top: 20px; padding: 15px; margin-bottom: 14px;
+            background: var(--warning-bg); border: 1px solid #fef3c7;
+            border-left: 4px solid var(--warning-border); border-radius: 8px;
+            color: var(--warning-text); font-size: 14px;
+        }
+        
+        .cost-row { display: flex; justify-content: space-between; margin-top: 8px; font-size: 15px; color: var(--text-muted); }
+        .total-cost-row { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0; font-size: 20px; font-weight: bold; color: var(--primary); }
+        .error { color: #dc2626; font-weight: bold; text-align: center; padding: 10px;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>uParcel Price Calculator</h2>
+    <p class="subtitle">Select items to determine optimal combination of parcel sizes.</p>
+    
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('laptops', event)">Laptops</button>
+        <button class="tab-btn" onclick="switchTab('monitors', event)">Monitors</button>
+        <button class="tab-btn" onclick="switchTab('accessories', event)">Accessories</button>
+    </div>
+
+    <div id="product-container">
+        </div>
+
+    <div class="action-row">
+        <button class="reset-btn" onclick="resetCalculator()">Reset All</button>
+        <button id="calc-btn" class="calc-btn" onclick="calculateDelivery()">Calculate Cost</button>
+    </div>
+    
+    <div id="result"></div>
+</div>
+
+<script>
+    const TIERS = [
+        { maxW: 1, maxDim: 60, price: 12 },
+        { maxW: 5, maxDim: 80, price: 13 },
+        { maxW: 8, maxDim: 100, price: 15 },
+        { maxW: 10, maxDim: 120, price: 18 },
+        { maxW: 15, maxDim: 140, price: 20 },
+        { maxW: 20, maxDim: 160, price: 23 },
+        { maxW: 25, maxDim: 200, price: 27 }
+    ];
+
+    const PRODUCTS = {
+        "air13": { category: "laptops", name: "13\" MacBook Air", hasBoxOptions: true,
+            unboxed: { weight: 1.24, H: 1.13, L: 30.41, W: 21.50 },
+            boxed:   { weight: 2.05, H: 6.00, L: 32.50, W: 23.00 }
+        },
+        "pro14": { category: "laptops", name: "14\" MacBook Pro", hasBoxOptions: true,
+            unboxed: { weight: 1.60, H: 1.55, L: 31.26, W: 22.12 },
+            boxed:   { weight: 2.40, H: 7.00, L: 35.50, W: 26.00 }
+        },
+        "pro16": { category: "laptops", name: "16\" MacBook Pro", hasBoxOptions: true,
+            unboxed: { weight: 2.14, H: 1.68, L: 35.57, W: 24.81 },
+            boxed:   { weight: 3.20, H: 8.00, L: 40.00, W: 29.00 }
+        },
+        "t14": { category: "laptops", name: "14\" Windows Laptop", hasBoxOptions: true,
+            unboxed: { weight: 1.32, H: 1.79, L: 31.77, W: 22.69 },
+            boxed:   { weight: 2.30, H: 8.00, L: 43.00, W: 30.00 }
+        },
+        "s80ud27": { category: "monitors", name: "27\" Samsung 4K", hasBoxOptions: false,
+            weight: 8.50, H: 16.00, L: 70.00, W: 45.00
+        },
+        "stand": { category: "accessories", name: "Laptop Stand", hasBoxOptions: false,
+            weight: 0.65, H: 3.00, L: 27.00, W: 22.00
+        },
+        "k380s": { category: "accessories", name: "Logitech Keyboard", hasBoxOptions: false,
+            weight: 0.60, H: 3.00, L: 30.00, W: 14.00
+        },
+        "m240": { category: "accessories", name: "Logitech Mouse", hasBoxOptions: false,
+            weight: 0.15, H: 4.40, L: 11.00, W: 6.40
+        },
+        "ugreen": { category: "accessories", name: "Ugreen USB-C Hub", hasBoxOptions: false,
+            weight: 0.20, H: 3.00, L: 15.00, W: 6.00
+        }
+    };
+
+    const container = document.getElementById('product-container');
+    for (const [id, prod] of Object.entries(PRODUCTS)) {
+        const displayStyle = prod.category === 'laptops' ? 'flex' : 'none';
+        
+        let cardHTML = `<div class="product-card" data-category="${prod.category}" style="display: ${displayStyle};">
+            <h3 class="product-title">${prod.name}</h3>`;
+
+        if (prod.hasBoxOptions) {
+            cardHTML += `
+                <div class="row">
+                    <div class="label-group">
+                        <span class="label-main">Device Only</span>
+                    </div>
+                    <div class="stepper">
+                        <button onclick="updateQty('${id}_unboxed', -1)">-</button>
+                        <input type="number" id="${id}_unboxed" value="0" min="0" oninput="updateTotalCounter()" onblur="validateInput(this.id)">
+                        <button onclick="updateQty('${id}_unboxed', 1)">+</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="label-group">
+                        <span class="label-main">BNIB + Charger</span>
+                    </div>
+                    <div class="stepper">
+                        <button onclick="updateQty('${id}_boxed', -1)">-</button>
+                        <input type="number" id="${id}_boxed" value="0" min="0" oninput="updateTotalCounter()" onblur="validateInput(this.id)">
+                        <button onclick="updateQty('${id}_boxed', 1)">+</button>
+                    </div>
+                </div>
+            `;
+        } else {
+            cardHTML += `
+                <div class="row">
+                    <div class="label-group">
+                        <span class="label-main">Quantity</span>
+                    </div>
+                    <div class="stepper">
+                        <button onclick="updateQty('${id}_qty', -1)">-</button>
+                        <input type="number" id="${id}_qty" value="0" min="0" oninput="updateTotalCounter()" onblur="validateInput(this.id)">
+                        <button onclick="updateQty('${id}_qty', 1)">+</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        cardHTML += `</div>`;
+        container.innerHTML += cardHTML;
+    }
+
+    function switchTab(category, event) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+
+        document.querySelectorAll('.product-card').forEach(card => {
+            if (card.dataset.category === category) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    // Ensure valid input when the user clicks out of the text box
+    function validateInput(id) {
+        const input = document.getElementById(id);
+        let val = parseInt(input.value);
+        if (isNaN(val) || val < 0) {
+            input.value = 0;
+        } else {
+            input.value = val; // This also cleanly removes leading zeros
+        }
+        updateTotalCounter();
+    }
+
+    function updateQty(id, change) {
+        const input = document.getElementById(id);
+        let currentVal = parseInt(input.value);
+        if (isNaN(currentVal)) currentVal = 0;
+        
+        let newVal = currentVal + change;
+        if (newVal >= 0) {
+            input.value = newVal;
+            updateTotalCounter();
+        }
+    }
+
+    function updateTotalCounter() {
+        let total = 0;
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            let val = parseInt(input.value);
+            if (!isNaN(val)) {
+                total += val;
+            }
+        });
+        const btnText = total > 0 ? `Calculate Cost (${total} items)` : 'Calculate Cost';
+        document.getElementById('calc-btn').innerText = btnText;
+    }
+
+    function resetCalculator() {
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.value = "0";
+        });
+        updateTotalCounter();
+        const resultDiv = document.getElementById('result');
+        resultDiv.style.display = 'none';
+        resultDiv.innerHTML = '';
+    }
+
+    function getCheapestTier(weight, dim) {
+        for (let tier of TIERS) {
+            if (weight <= tier.maxW && dim <= tier.maxDim) {
+                return { name: `<${tier.maxDim}cm & max ${tier.maxW}kg`, price: tier.price };
+            }
+        }
+        return null;
+    }
+
+    function calculateDelivery() {
+        const resultDiv = document.getElementById('result');
+        resultDiv.style.display = 'block';
+        let itemsToPack = [];
+        
+        for (const [id, prod] of Object.entries(PRODUCTS)) {
+            if (prod.hasBoxOptions) {
+                let unboxedQty = parseInt(document.getElementById(`${id}_unboxed`).value) || 0;
+                let boxedQty = parseInt(document.getElementById(`${id}_boxed`).value) || 0;
+                
+                for (let i = 0; i < unboxedQty; i++) {
+                    itemsToPack.push({ weight: prod.unboxed.weight, H: prod.unboxed.H, L: prod.unboxed.L, W: prod.unboxed.W, displayName: `${prod.name} (Device Only)` });
+                }
+                for (let i = 0; i < boxedQty; i++) {
+                    itemsToPack.push({ weight: prod.boxed.weight, H: prod.boxed.H, L: prod.boxed.L, W: prod.boxed.W, displayName: `${prod.name} (Boxed)` });
+                }
+            } else {
+                let qty = parseInt(document.getElementById(`${id}_qty`).value) || 0;
+                for (let i = 0; i < qty; i++) {
+                    itemsToPack.push({ weight: prod.weight, H: prod.H, L: prod.L, W: prod.W, displayName: prod.name });
+                }
+            }
+        }
+
+        if (itemsToPack.length === 0) {
+            resultDiv.innerHTML = "<div class='error'>Please select at least one item.</div>";
+            return;
+        }
+
+        itemsToPack.sort((a, b) => b.weight - a.weight);
+        let boxes = [];
+
+        for (let item of itemsToPack) {
+            let placed = false;
+            for (let box of boxes) {
+                let testWeight = box.weight + item.weight;
+                let testH = box.H + item.H;
+                let testL = Math.max(box.L, item.L);
+                let testW = Math.max(box.W, item.W);
+                let testDim = testH + testL + testW;
+
+                if (testWeight <= 25 && testDim <= 200) {
+                    box.weight = testWeight; box.H = testH; box.L = testL; box.W = testW; box.dim = testDim;
+                    box.itemList.push(item.displayName);
+                    placed = true;
+                    break;
+                }
+            }
+            if (!placed) {
+                boxes.push({
+                    weight: item.weight, H: item.H, L: item.L, W: item.W,
+                    dim: item.H + item.L + item.W, itemList: [item.displayName]
+                });
+            }
+        }
+
+        let baseCost = 0;
+        let output = `<div style="margin-bottom: 15px; font-weight: bold; color: var(--primary);">Total Parcels Required: ${boxes.length}</div>`;
+
+        for (let i = 0; i < boxes.length; i++) {
+            let box = boxes[i];
+            let tierInfo = getCheapestTier(box.weight, box.dim);
+            
+            if (!tierInfo) {
+                resultDiv.innerHTML = "<div class='error'>Error: A requested configuration exceeds the maximum 25kg / 200cm limits.</div>";
+                return;
+            }
+
+            baseCost += tierInfo.price;
+            let itemCounts = {};
+            box.itemList.forEach(name => { itemCounts[name] = (itemCounts[name] || 0) + 1; });
+            let itemsHTML = Object.entries(itemCounts).map(([name, count]) => `<li>${count}x ${name}</li>`).join('');
+
+            output += `
+                <div class="parcel-box">
+                    <div class="parcel-header">📦 Parcel ${i + 1} &mdash; ${tierInfo.name} ($${tierInfo.price})</div>
+                    <div class="parcel-specs">Actual: ${box.weight.toFixed(2)} kg | Dim: ${box.dim.toFixed(2)} cm</div>
+                    <ul class="parcel-items">${itemsHTML}</ul>
+                </div>
+            `;
+        }
+
+        let fragileFee = 3;
+        let finalCost = baseCost + fragileFee;
+
+        output += `
+            <div class="warning-box">
+                <strong>⚠️ Required Action:</strong> Tick the <b>"Fragile Items"</b> box when booking the courier.
+            </div>
+        `;
+        
+        output += `
+            <div class="cost-row">
+                <span>Delivery Subtotal:</span>
+                <span>$${baseCost}</span>
+            </div>
+            <div class="cost-row">
+                <span>Fragile Items Surcharge:</span>
+                <span>+$${fragileFee}</span>
+            </div>
+            <div class="total-cost-row">
+                <span>Total Expected Cost:</span>
+                <span>$${finalCost}</span>
+            </div>
+        `;
+
+        resultDiv.innerHTML = output;
+    }
+</script>
+
+</body>
+</html>
