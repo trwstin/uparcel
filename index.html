@@ -471,7 +471,8 @@
         }
 
         let fragileFee = 3;
-        let finalCost = baseCost + fragileFee;
+        let cbdFee = 4;
+        let finalCost = baseCost + fragileFee + cbdFee;
 
         output += `
             <div class="warning-box">
@@ -483,6 +484,10 @@
             <div class="cost-row">
                 <span>Delivery Subtotal:</span>
                 <span>$${baseCost}</span>
+            </div>
+            <div class="cost-row">
+                <span>Delivery in CBD:</span>
+                <span>+$${cbdFee}</span>
             </div>
             <div class="cost-row">
                 <span>Fragile Items Surcharge:</span>
